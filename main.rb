@@ -12,7 +12,7 @@ def create_plan_dialog
   plan_name = ask_string('Plan name:')
   plan_id = ask_string('Plan id:')
   currency = ask_string('Currency:')
-  amount = ask_string('Amount (in cents)')
+  amount = ask_int('Amount (in cents)')
   interval_question = 'Plan Interval'
   interval_choices = ['month', 'year']
   interval = ask_single_choice(interval_question, interval_choices)
@@ -66,6 +66,28 @@ def ask_single_choice(question, possible_answers)
   ask_choice(question, range, possible_answers)
 end
 
+def test_validation
+  lambda do  |str|
+    array = str.split(/,\s*/)
+    array.each { |s| s.validate = /\d/}
+  end
+end
+
+def ask_multiple_choice(question, possible_answers)
+  range = (0..possible_answers.length).to_a
+  possible_answers = ['all'] + possible_answers
+
+  choices = Hash[range.zip possible_answers]
+  numerated_choices = choices.map { |k, v| "#{k} - #{v}" }.join("\n")
+
+  choice_index = ask( "%s\n%s" % [question, numerated_choices] ,
+  lambda {|str| str.split(/,\s*/)})
+
+  choices.keep_if {|k,_| choice_index.include? k.to_s }
+
+  choices.values
+end
+
 def ask_choice_with_all(question, original_possible_answers)
   range = (0..original_possible_answers.length).to_a
   possible_answers = ['all'] + original_possible_answers
@@ -82,7 +104,8 @@ end
 def ask_environment
   environment_question = 'Environment'
   environment_choices = get_environments
-  ask_choice_with_all(environment_question, environment_choices)
+  ask_multiple_choice(environment_question, environment_choices)
+  #ask_choice_with_all(environment_question, environment_choices)
 end
 
 def ask_string(question, possible_answers = {})
@@ -94,7 +117,7 @@ def ask_string(question, possible_answers = {})
   ) { |q| q.validate = /\w+/ }
 end
 
-def ask_int(question, possible_answers)
+def ask_int(question, possible_answers = {})
   aux = possible_answers.map { |k, v| "#{k} - #{v}" }.join("\n")
 
   ask(
@@ -105,6 +128,8 @@ end
 
 def create_plan_in_stripe(id, name, amount, interval, currency, environments)
   puts "Gathered required information, creating plan in stripe..."
+
+  puts "#{environments} -> environments"
 
   environments.each do |environment|
     set_api_key_for_environment(environment)
@@ -139,7 +164,7 @@ end
 def main
   validate_environments
   question = 'What would you like to do?'
-  answers = ['Create a new plan', 'Copy an existing plan to another environment', 'List available environments', 'List available plans in a given environment']
+  answers = ['Create a new plan', 'Copy an existing plan to another environment', 'List available environments', 'List available plans in a given environment', 'test']
 
   action = ask_single_choice(question, answers)
 

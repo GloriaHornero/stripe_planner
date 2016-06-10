@@ -152,6 +152,10 @@ def create_plan_in_stripe(id, name, amount, interval, currency, environments)
   puts 'Done :D'
 end
 
+def copy_plan
+
+end
+
 def list_plans_in_environment
   environments = ask_environment
 

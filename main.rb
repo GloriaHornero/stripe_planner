@@ -186,6 +186,7 @@ def main
   when 'Create a new plan' then create_plan_dialog
   when 'List available environments' then list_environments
   when 'List available plans in a given environment' then list_plans_in_environment
+  when 'Copy an existing plan to another environment' then copy_plan
   else 'Not implemented yet :('
   end
 end

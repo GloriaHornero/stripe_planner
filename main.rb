@@ -119,6 +119,11 @@ def ask_environment
   ask_multiple_choices_with_all(environment_question, environment_choices)
 end
 
+def ask_specific_environment(question)
+  environment_choices = environments
+  ask_single_choice(question, environment_choices)
+end
+
 def ask_string(question, choices = {})
   aux = choices.map { |k, v| "#{k} - #{v}" }.join("\n")
 
@@ -153,7 +158,20 @@ def create_plan_in_stripe(id, name, amount, interval, currency, environments)
 end
 
 def copy_plan
-
+  initial_environment = ask_specific_environment('From which environment do you want to copy the plan?')
+  set_api_key_for_environment(initial_environment)
+  plans = Stripe::Plan.all.data
+  plans_hash = Hash[plans.map {|plan| [plan.id, plan]}]
+  plan = ask_single_choice('Which plan do you want to copy?', plans_hash.keys )
+  final_environment = ask_specific_environment('To which environment do you want to copy the plan?')
+  create_plan_in_stripe(
+      plans_hash[plan].id,
+      plans_hash[plan].name,
+      plans_hash[plan].amount,
+      plans_hash[plan].interval,
+      plans_hash[plan].currency,
+      final_environment.split
+  )
 end
 
 def list_plans_in_environment
